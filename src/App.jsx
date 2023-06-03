@@ -1,8 +1,8 @@
-import Shop from './components/Shop'
+import Products from './components/Products'
 
 function App() {
   return (
-    <Shop />
+    <Products />
   )
 }
 

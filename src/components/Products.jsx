@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
-const Shop = () => {
+
+export default function Products() {
   const [products, setProducts] = useState([])
 
   async function getProducts() {
@@ -15,12 +16,15 @@ const Shop = () => {
 
   return (
     <div className='flex flex-col justify-center bg-gray-100'>
-      <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Shop</h1>
+      <div className='flex justify-between items-center px-20 py-5'>
+        <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Shop</h1>
+        <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Cart</h1>
+      </div>
       <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-10'>
         {
           products.map(product => (
             <div key={product.id} className='bg-white shadow-md rounded-lg px-10 py-10'>
-              <img src={product.thumbnail} alt={product.title} className='rounded-md h-20 w-20' />
+              <img src={product.thumbnail} alt={product.title} className='rounded-md h-48' />
               <div className='mt-4'>
                 <h1 className='text-lg uppercase font-bold'>{product.title}</h1>
                 <p className='mt-2 text-gray-600 text-sm'>{product.description.slice(0, 40)}...</p>
@@ -36,5 +40,3 @@ const Shop = () => {
     </div>
   )
 }
-
-export default Shop
