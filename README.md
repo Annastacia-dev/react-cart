@@ -216,7 +216,7 @@ export default function Products() {
 ```
 
 Open the application in your browser and you should see the products displayed.
-![Products]('./public/cart.png')
+![Products Page]('public/cart.png')
 
 
 
