@@ -119,7 +119,6 @@ Next, let's display the products in the `Products` component. In the return stat
 <div className='flex flex-col justify-center bg-gray-100'>
   <div className='flex justify-between items-center px-20 py-5'>
     <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Shop</h1>
-    <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Cart</h1>
   </div>
   <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-10'>
     {
@@ -217,6 +216,375 @@ export default function Products() {
 
 Open the application in your browser and you should see the products displayed.
 ![Products Page](public/cart.png)
+
+## Creating the Cart Context
+Context is a way to pass data through the component tree without having to pass props down manually at every level. In this tutorial, we will be using the Context API to pass the cart state to the components that need it. Let's create a new folder named `context` in the `src` folder. Inside the `context` folder, create a new file named `cart.jsx`. We will be using the `createContext` hook to create the cart context.We will also be using the `useState` hook to store the cart state and the `useEffect` hook to persist the cart state in the browser. Let's import the `createContext`, `useState`, and `useEffect` hooks from the `react` package. Add the following code to the `cart.jsx` file:
+
+```jsx
+import { createContext, useState, useEffect } from 'react'
+```
+
+Next, let's create the cart context. Add the following code to the `cart.jsx` file:
+
+```jsx
+export const CartContext = createContext()
+```
+
+Next, let's create the `CartProvider` component. Add the following code to the `cart.jsx` file:
+
+```jsx
+export const CartProvider = ({ children }) => {
+}
+```
+
+Initialize the state of the cart. Add the following code to the `cart.jsx` file:
+
+```jsx
+const [cartItems, setCartItems] = useState([])
+```
+
+Looking at how we want our cart to work, we want to be able to add items to the cart, remove items from the cart, and clear the cart. Let's create a function that will be used to add items to the cart. Add the following code to the `cart.jsx` file:
+
+```jsx
+ const addToCart = (item) => {
+  const isItemInCart = cartItems.find((cartItem) => cartItem.id === item.id); // check if the item is already in the cart
+
+  if (isItemInCart) {
+  setCartItems(
+      cartItems.map((cartItem) => // if the item is already in the cart, increase the quantity of the item
+      cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem // otherwise, return the cart item
+      )
+  );
+  } else {
+  setCartItems([...cartItems, { ...item, quantity: 1 }]); // if the item is not in the cart, add the item to the cart
+  }
+};
+```
+Explanation:
+- We are using the `find` method to check if the item is already in the cart. The `find` method returns the value of the first element in the array that satisfies the provided testing function. If no values satisfy the testing function, `undefined` is returned.
+- If the item is already in the cart, we are using the `map` method to increase the quantity of the item in the cart. The `map` method creates a new array populated with the results of calling a provided function on every element in the calling array.
+- If the item is not in the cart, we are using the spread operator to add the item to the cart.
+
+Let's create a function that will be used to remove items from the cart. Add the following code to the `cart.jsx` file:
+
+```jsx
+ const removeFromCart = (item) => {
+  const isItemInCart = cartItems.find((cartItem) => cartItem.id === item.id);
+
+  if (isItemInCart.quantity === 1) {
+    setCartItems(cartItems.filter((cartItem) => cartItem.id !== item.id)); // if the quantity of the item is 1, remove the item from the cart
+  } else {
+    setCartItems(
+      cartItems.map((cartItem) =>
+        cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity - 1 } // if the quantity of the item is greater than 1, decrease the quantity of the item
+          : cartItem
+      )
+    );
+  }
+};
+```
+Explanation:
+- We are using the `find` method to check if the item is in the cart. The `find` method returns the value of the first element in the array that satisfies the provided testing function. If no values satisfy the testing function, `undefined` is returned.
+- If the quantity of the item is 1, we are using the `filter` method to remove the item from the cart. The `filter` method creates a new array with all elements that pass the test implemented by the provided function.
+- If the quantity of the item is greater than 1, we are using the `map` method to decrease the quantity of the item in the cart. The `map` method creates a new array populated with the results of calling a provided function on every element in the calling array.
+
+Let's create a function that will be used to clear the cart. Add the following code to the `cart.jsx` file:
+
+```jsx
+const clearCart = () => {
+  setCartItems([]); // set the cart items to an empty array
+};
+```
+Explanation:
+- We are using the `setCartItems` method to set the cart items to an empty array.
+
+Let's create a function to get the cart total. Add the following code to the `cart.jsx` file:
+
+```jsx
+const getCartTotal = () => {
+  return cartItems.reduce((total, item) => total + item.price * item.quantity, 0); // calculate the total price of the items in the cart
+};
+```
+Explanation of the code above:
+- We are using the `reduce` method to calculate the total price of the items in the cart. The `reduce` method executes a reducer function (that you provide) on each element of the array, resulting in a single output value.
+
+Next, let's use the `useEffect` hook to persist the cart state in the browser. Add the following code to the `cart.jsx` file:
+
+```jsx
+useEffect(() => {
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+}, [cartItems]);
+```
+Explanation:
+- We are using the `setItem` method of the `localStorage` API to set the cart items in the browser. The `setItem` method sets the value of the specified `localStorage` item.
+- We are using the `JSON.stringify` method to convert the cart items to a string. The `JSON.stringify` method converts a JavaScript object or value to a JSON string.
+- For a real-world application, you will need to use a database to store the cart items, since the `localStorage` API is not secure and can be easily manipulated by the user.
+
+Let's also use the `useEffect` hook to get the cart items from the browser. Add the following code to the `cart.jsx` file:
+
+```jsx
+useEffect(() => {
+    const cartItems = localStorage.getItem("cartItems");
+    if (cartItems) {
+    setCartItems(JSON.parse(cartItems));
+    }
+}, []);
+```
+Explanation:
+- We are using the `getItem` method of the `localStorage` API to get the cart items from the browser. The `getItem` method returns the value of the specified `localStorage` item.
+- We are using the `JSON.parse` method to convert the cart items to an object. The `JSON.parse` method parses a JSON string, constructing the JavaScript value or object described by the string.
+
+Let's update the initial state of cart items to the cart items we get from the browser. Add the following code to the `cart.jsx` file:
+
+```jsx
+const [cartItems, setCartItems] = useState(localStorage.getItem('cartItems') ? JSON.parse(localStorage.getItem('cartItems')) : [])
+```
+This will set the initial state of the cart items to the cart items we get from the browser. If there are no cart items in the browser, the initial state of the cart items will be an empty array.
+
+Next, let's pass the cart state to the components that need it. Add the following code to the `cart.jsx` file:
+
+```jsx
+return (
+  <CartContext.Provider
+    value={{
+      cartItems,
+      addToCart,
+      removeFromCart,
+      clearCart,
+      getCartTotal,
+    }}
+  >
+    {children}
+  </CartContext.Provider>
+);
+```
+
+Your `cart.jsx` file should now look like this:
+
+```jsx
+import { createContext, useState, useEffect } from 'react'
+
+export const CartContext = createContext()
+
+export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState(localStorage.getItem('cartItems') ? JSON.parse(localStorage.getItem('cartItems')) : [])
+
+  const addToCart = (item) => {
+    const isItemInCart = cartItems.find((cartItem) => cartItem.id === item.id);
+
+    if (isItemInCart) {
+      setCartItems(
+        cartItems.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        )
+      );
+    } else {
+      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+    }
+  };
+
+  const removeFromCart = (item) => {
+    const isItemInCart = cartItems.find((cartItem) => cartItem.id === item.id);
+
+    if (isItemInCart.quantity === 1) {
+      setCartItems(cartItems.filter((cartItem) => cartItem.id !== item.id));
+    } else {
+      setCartItems(
+        cartItems.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity - 1 }
+            : cartItem
+        )
+      );
+    }
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const getCartTotal = () => {
+    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    const cartItems = localStorage.getItem("cartItems");
+    if (cartItems) {
+      setCartItems(JSON.parse(cartItems));
+    }
+  }, []);
+
+  return (
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        getCartTotal,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
+```
+
+## Using the Cart Context
+Now that we have created the cart context, let's wrap the `App` component with the `CartProvider` component. Open the `main.jsx` file in the `src` folder and import the `CartProvider` component. Add the following code to the `main.jsx` file:
+
+```jsx
+import { CartProvider } from './context/cart'
+```
+Next, let's wrap the `App` component with the `CartProvider` component. Add the following code to the `main.jsx` file:
+
+```jsx
+<CartProvider>
+  <App />
+</CartProvider>
+```
+
+Your `main.jsx` file should now look like this:
+
+```jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { CartProvider } from './context/cart.jsx'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <CartProvider>
+      <App />
+    </CartProvider>
+  </React.StrictMode>,
+)
+```
+
+Next, let's import the `CartContext` from the `cart` file in the `context` folder. Add the following code to the `Products.jsx` file:
+
+```jsx
+import { CartContext } from '../context/cart'
+```
+
+We will also need to import the `useContext` hook from the `react` package. Update the import statement in the `Products.jsx` file to look like this:
+
+```jsx
+import { useContext, useEffect, useState } from 'react'
+```
+
+Next, let's use the `useContext` hook to get the cart state. Add the following code to the `Products.jsx` file:
+
+```jsx
+const { cartItems, addToCart } = useContext(CartContext)
+```
+
+Next, let's update the `addToCart` button to use the `addToCart` function from the cart context. Update the `addToCart` button to look like this:
+
+```jsx
+<button onClick={() => addToCart(product)} className='px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700'>Add to cart</button>
+```
+
+Now the button should add the product to the cart when clicked, but it's hard to visualize this without a cart page.
+Let's start by creating a `Cart` component. Create a new file named `Cart.jsx` in the `components` folder. We will be using the `useContext` hook to get the cart state. Let's import the `useContext` hook from the `react` package. Add the following code to the `Cart.jsx` file:
+
+```jsx
+import { useContext } from 'react'
+```
+
+Next, let's import the `CartContext` from the `cart` file in the `context` folder. Add the following code to the `Cart.jsx` file:
+
+```jsx
+import { CartContext } from '../context/cart'
+```
+
+Create a new function named `Cart` and export it. Add the following code to the `Cart.jsx` file:
+
+```jsx
+export default function Cart() {
+  return (
+    <>
+    </>
+  )
+}
+```
+
+Let's use the `useContext` hook to get the cart state. Add the following code to the `Cart.jsx` file:
+
+```jsx
+const { cartItems, addToCart, removeFromCart, clearCart, getCartTotal } = useContext(CartContext)
+```
+
+Next, let's display the cart items in the `Cart` component. In the return statement of the `Cart` component, add the following code:
+
+```jsx
+<div className="flex-col flex items-center fixed inset-0 left-1/4 bg-white dark:bg-black gap-8  p-10  text-black dark:text-white font-normal uppercase text-sm">
+  <h1 className="text-2xl font-bold">Cart</h1>
+  <div className="flex flex-col gap-4">
+    {cartItems.map((item) => (
+      <div className="flex justify-between items-center" key={item.id}>
+        <div className="flex gap-4">
+          <img src={item.thumbnail} alt={item.title} className="rounded-md h-24" />
+          <div className="flex flex-col">
+            <h1 className="text-lg font-bold">{item.title}</h1>
+            <p className="text-gray-600">{item.price}</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button
+            className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+            onClick={() => {
+              addToCart(item)
+            }}
+          >
+            +
+          </button>
+          <p>{item.quantity}</p>
+          <button
+            className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+            onClick={() => {
+              removeFromCart(item)
+            }}
+          >
+            -
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+  {
+    cartItems.length > 0 ? (
+      <div className="flex flex-col justify-between items-center">
+    <h1 className="text-lg font-bold">Total: ${getCartTotal()}</h1>
+    <button
+      className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+      onClick={() => {
+        clearCart()
+      }}
+    >
+      Clear cart
+    </button>
+  </div>
+    ) : (
+      <h1 className="text-lg font-bold">Your cart is empty</h1>
+    )
+  }
+</div>
+```
+
+
+
+
 
 
 
