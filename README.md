@@ -8,6 +8,8 @@ To follow along with this tutorial, you will need to have the following installe
 - Node.js
 - npm
 
+You also need to have a basic understanding of React JS and Tailwind CSS.
+
 ## Getting Started
 To get started, we will create a new React application using vite. To do this, run the following command in your terminal:
 
@@ -528,7 +530,7 @@ const { cartItems, addToCart, removeFromCart, clearCart, getCartTotal } = useCon
 Next, let's display the cart items in the `Cart` component. In the return statement of the `Cart` component, add the following code:
 
 ```jsx
-<div className="flex-col flex items-center fixed inset-0 left-1/4 bg-white dark:bg-black gap-8  p-10  text-black dark:text-white font-normal uppercase text-sm">
+<div className="flex-col flex items-center bg-white gap-8 p-10 text-black text-sm">
   <h1 className="text-2xl font-bold">Cart</h1>
   <div className="flex flex-col gap-4">
     {cartItems.map((item) => (
@@ -581,6 +583,222 @@ Next, let's display the cart items in the `Cart` component. In the return statem
   }
 </div>
 ```
+
+This will display the cart items in the cart component. Each cart item will display the item image, title, price, and quantity. Each cart item will also have a button to increase the quantity of the item and a button to decrease the quantity of the item. The cart component will also display the total price of the items in the cart and a button to clear the cart.
+
+You can now choose the best way to navigate to your cart from the products page using the react router. In this tutorial, we will be toggling a modal to display the cart.
+In the `Products` component, let's import the `Cart` component. Add the following code to the `Products.jsx` file:
+
+```jsx
+import Cart from './Cart'
+```
+
+Let's also initialize the state of the modal. Add the following code to the `Products.jsx` file:
+
+```jsx
+const [showModal, setShowModal] = useState(false)
+```
+
+Let's create a function to toggle the modal. Add the following code to the `Products.jsx` file:
+
+```jsx
+const toggle = () => {
+  setShowModal(!showModal)
+}
+```
+
+Next, we will add a button to toggle the modal. Add the following code to the `Products.jsx` file below the `h1` tag:
+
+```jsx
+{!showModal && <button className='px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700'
+  onClick={toggle}
+>Cart ({cartItems.length})</button>}
+```
+This will display a button to toggle the modal. The button will display the number of items in the cart.
+
+Let's now display the modal( `Cart` component) when the button is clicked. Add the following code to the `Products.jsx` file just before the last closing `div` tag:
+
+```jsx
+  <Cart showModal={showModal} toggle={toggle} />
+```
+
+Your `Products.jsx` file should now look like this:
+
+```jsx
+import { useState, useEffect, useContext } from 'react'
+import { CartContext } from '../context/cart.jsx'
+import Cart from './Cart.jsx'
+
+
+export default function Products() {
+  const [showModal, setshowModal] = useState(false);
+  const [products, setProducts] = useState([])
+  const { cartItems, addToCart } = useContext(CartContext)
+
+  const toggle = () => {
+    setshowModal(!showModal);
+  };
+
+  async function getProducts() {
+    const response = await fetch('https://dummyjson.com/products')
+    const data = await response.json()
+    setProducts(data.products)
+  }
+
+  useEffect(() => {
+    getProducts()
+  }, [])
+
+  return (
+    <div className='flex flex-col justify-center bg-gray-100'>
+      <div className='flex justify-between items-center px-20 py-5'>
+        <h1 className='text-2xl uppercase font-bold mt-10 text-center mb-10'>Shop</h1>
+        {!showModal && <button className='px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700'
+          onClick={toggle}
+        >Cart ({cartItems.length})</button>}
+      </div>
+      <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-10'>
+        {
+          products.map(product => (
+            <div key={product.id} className='bg-white shadow-md rounded-lg px-10 py-10'>
+              <img src={product.thumbnail} alt={product.title} className='rounded-md h-48' />
+              <div className='mt-4'>
+                <h1 className='text-lg uppercase font-bold'>{product.title}</h1>
+                <p className='mt-2 text-gray-600 text-sm'>{product.description.slice(0, 40)}...</p>
+                <p className='mt-2 text-gray-600'>${product.price}</p>
+              </div>
+              <div className='mt-6 flex justify-between items-center'>
+                <button className='px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700'
+                  onClick={() => {
+                    addToCart(product)
+                  }
+                  }
+                >Add to cart</button>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <Cart showModal={showModal} toggle={toggle} />
+    </div>
+  )
+}
+```
+
+Let's update the `Cart` component to use the `showModal` prop. Open the `Cart.jsx` file and update the `Cart` component to look like this:
+
+```jsx
+import PropTypes from 'prop-types'
+import { useContext } from 'react'
+import { CartContext } from '../context/cart.jsx'
+
+export default function Cart ({showModal, toggle}) {
+
+  const { cartItems, addToCart, removeFromCart, clearCart, getCartTotal } = useContext(CartContext)
+
+
+  return (
+    showModal && (
+      <div className="flex-col flex items-center fixed inset-0 left-1/4 bg-white dark:bg-black gap-8  p-10  text-black dark:text-white font-normal uppercase text-sm">
+        <h1 className="text-2xl font-bold">Cart</h1>
+        <div className="absolute right-16 top-10">
+          <button
+            className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+            onClick={toggle}
+          >
+            Close
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          {cartItems.map((item) => (
+            <div className="flex justify-between items-center" key={item.id}>
+              <div className="flex gap-4">
+                <img src={item.thumbnail} alt={item.title} className="rounded-md h-24" />
+                <div className="flex flex-col">
+                  <h1 className="text-lg font-bold">{item.title}</h1>
+                  <p className="text-gray-600">{item.price}</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+                  onClick={() => {
+                    addToCart(item)
+                  }}
+                >
+                  +
+                </button>
+                <p>{item.quantity}</p>
+                <button
+                  className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+                  onClick={() => {
+                    removeFromCart(item)
+                  }}
+                >
+                  -
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {
+          cartItems.length > 0 ? (
+            <div className="flex flex-col justify-between items-center">
+          <h1 className="text-lg font-bold">Total: ${getCartTotal()}</h1>
+          <button
+            className="px-4 py-2 bg-gray-800 text-white text-xs font-bold uppercase rounded hover:bg-gray-700 focus:outline-none focus:bg-gray-700"
+            onClick={() => {
+              clearCart()
+            }}
+          >
+            Clear cart
+          </button>
+        </div>
+          ) : (
+            <h1 className="text-lg font-bold">Your cart is empty</h1>
+          )
+        }
+      </div>
+    )
+  )
+}
+
+Cart.propTypes = {
+  showModal: PropTypes.bool,
+  toggle: PropTypes.func
+}
+```
+We have added a close button to the cart component. The close button will be used to close the cart component. and I have added some tailwind css classes to the top `div` to inset the cart component from the left side of the screen.
+
+## Conclusion
+Our application is now complete. You can open the application in your browser and test it out.
+You should have something that looks like this:
+![React Cart Video](public/react-cart.mp4)
+
+There are other ways you can explore to improve the user experience of the application that I won't cover e.g
+- The `Add to cart` button can change to a quantity selector when the product is already added to the cart.
+- Adding notifications to the application when a user adds/removes an item to the cart.You can use the [React Toastify](https://fkhadra.github.io/react-toastify/introduction/) library to add notifications to the application.
+
+I'll implement these features in the source code of the application. You can check it out [here](https://github.com/Annastacia-dev/react-cart)
+You can also checkout the live demo [here](https://react-cart-azure.vercel.app/)
+
+## Resources
+- [React](https://reactjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [React Context](https://reactjs.org/docs/context.html)
+
+Thank you for reading this tutorial. If you have any questions, feel free to reach out to me on [Email](mailto:annetotoh@gmail.com) or [LinkedIn](https://www.linkedin.com/in/annastacia-mumbua).
+
+
+
+
+
+
+
+
+
+
+
 
 
 

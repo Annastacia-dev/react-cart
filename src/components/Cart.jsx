@@ -2,13 +2,13 @@ import PropTypes from 'prop-types'
 import { useContext } from 'react'
 import { CartContext } from '../context/cart.jsx'
 
-export default function Cart ({isOpen, toggle}) {
+export default function Cart ({showModal, toggle}) {
 
   const { cartItems, addToCart, removeFromCart, clearCart, getCartTotal } = useContext(CartContext)
 
 
   return (
-    isOpen && (
+    showModal && (
       <div className="flex-col flex items-center fixed inset-0 left-1/4 bg-white dark:bg-black gap-8  p-10  text-black dark:text-white font-normal uppercase text-sm">
         <h1 className="text-2xl font-bold">Cart</h1>
         <div className="absolute right-16 top-10">
@@ -74,7 +74,7 @@ export default function Cart ({isOpen, toggle}) {
 }
 
 Cart.propTypes = {
-  isOpen: PropTypes.bool,
+  showModal: PropTypes.bool,
   toggle: PropTypes.func
 }
 
